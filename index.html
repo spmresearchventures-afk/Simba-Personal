@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Projects</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ========================================
+   CSS CUSTOM PROPERTIES — MODE-AWARE
+   ======================================== */
+:root {
+  /* Shared */
+  --font-body: 'DM Sans', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-display: 'Playfair Display', Georgia, serif;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.15);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+/* VENTURES MODE — deep, focused, ambitious */
+[data-mode="ventures"] {
+  --bg-primary: #08090c;
+  --bg-surface: #0f1118;
+  --bg-card: #151821;
+  --bg-card-hover: #1a1e2a;
+  --bg-input: #1a1e2a;
+  --border: #252a38;
+  --border-focus: #c8a44e;
+  --text-primary: #e8e4dc;
+  --text-secondary: #8a8698;
+  --text-dim: #5a5668;
+  --accent: #c8a44e;
+  --accent-soft: rgba(200,164,78,0.12);
+  --accent-text: #dbb85a;
+  --status-active: #c8a44e;
+  --status-planning: #6878a8;
+  --status-paused: #8a6848;
+  --status-done: #4a8858;
+  --header-gradient: linear-gradient(135deg, #0f1118 0%, #1a1520 100%);
+  --mode-label: "VENTURES";
+  --grain-opacity: 0.03;
+}
+
+/* LIFE MODE — warm, organic, expansive */
+[data-mode="life"] {
+  --bg-primary: #0c0b08;
+  --bg-surface: #14120e;
+  --bg-card: #1c1914;
+  --bg-card-hover: #241f18;
+  --bg-input: #241f18;
+  --border: #342e24;
+  --border-focus: #7aaa6e;
+  --text-primary: #e4ddd2;
+  --text-secondary: #9a8e7e;
+  --text-dim: #6a5e4e;
+  --accent: #7aaa6e;
+  --accent-soft: rgba(122,170,110,0.1);
+  --accent-text: #8ebe80;
+  --status-active: #7aaa6e;
+  --status-planning: #8a9a6e;
+  --status-paused: #aa8a5e;
+  --status-done: #5a8a6a;
+  --header-gradient: linear-gradient(135deg, #14120e 0%, #1a1810 100%);
+  --mode-label: "LIFE";
+  --grain-opacity: 0.04;
+}
+
+/* Life mode categories */
+.cat-life { --cat-color: #7aaa6e; }
+.cat-creative { --cat-color: #aa7acc; }
+.cat-fashion { --cat-color: #cc7a8a; }
+.cat-spiritual { --cat-color: #7a9acc; }
+.cat-health { --cat-color: #6abba0; }
+.cat-general { --cat-color: #9a9080; }
+
+/* ========================================
+   RESET & BASE
+   ======================================== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Subtle grain texture */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity: var(--grain-opacity);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ========================================
+   AUTH SCREEN
+   ======================================== */
+.auth-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.auth-box {
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+}
+
+.auth-box h1 {
+  font-family: var(--font-display);
+  font-size: 2em;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+.auth-box p {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  margin-bottom: 28px;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 14px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 1em;
+  outline: none;
+  transition: border-color var(--transition);
+  margin-bottom: 12px;
+}
+
+.auth-input:focus { border-color: var(--border-focus); }
+
+.auth-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--accent);
+  color: var(--bg-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 0.95em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.auth-btn:hover { filter: brightness(1.1); }
+.auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.auth-msg {
+  margin-top: 14px;
+  font-size: 0.85em;
+  color: var(--text-secondary);
+  min-height: 20px;
+}
+
+.auth-msg.error { color: #d85858; }
+.auth-msg.success { color: #58b878; }
+
+/* ========================================
+   SETUP SCREEN (first-time Supabase config)
+   ======================================== */
+.setup-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.setup-box {
+  width: 100%;
+  max-width: 500px;
+}
+
+.setup-box h1 {
+  font-family: var(--font-display);
+  font-size: 1.8em;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.setup-box .subtitle {
+  color: var(--text-secondary);
+  font-size: 0.88em;
+  margin-bottom: 24px;
+  line-height: 1.55;
+}
+
+.setup-box label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.78em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  margin-top: 16px;
+}
+
+.setup-box .hint {
+  font-size: 0.8em;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+.setup-box textarea {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+  outline: none;
+  resize: vertical;
+  min-height: 48px;
+  transition: border-color var(--transition);
+}
+
+.setup-box textarea:focus { border-color: var(--border-focus); }
+
+/* ========================================
+   APP LAYOUT
+   ======================================== */
+.app { display: none; min-height: 100vh; }
+.app.visible { display: block; }
+
+/* Header */
+.header {
+  background: var(--header-gradient);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.header-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.mode-badge {
+  font-family: var(--font-mono);
+  font-size: 0.7em;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  color: var(--accent-text);
+  background: var(--accent-soft);
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+.header-title {
+  font-family: var(--font-display);
+  font-size: 1.35em;
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mode-switch {
+  padding: 7px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.72em;
+  cursor: pointer;
+  transition: all var(--transition);
+  text-decoration: none;
+  letter-spacing: 0.5px;
+}
+
+.mode-switch:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+  font-size: 1.1em;
+}
+
+.btn-icon:hover {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+
+/* ========================================
+   PROJECT LIST
+   ======================================== */
+.content {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Category filter pills — life mode only */
+.category-filters {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.cat-pill {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-family: var(--font-mono);
+  font-size: 0.72em;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all var(--transition);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.cat-pill:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+.cat-pill.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+/* Status filters */
+.status-filters {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.status-pill {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-family: var(--font-mono);
+  font-size: 0.72em;
+  cursor: pointer;
+  transition: all var(--transition);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.status-pill:hover { background: var(--bg-card-hover); }
+.status-pill.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+/* Project cards grid */
+.projects-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.project-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  cursor: pointer;
+  transition: all var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.project-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--card-accent, var(--accent));
+  opacity: 0.6;
+  transition: opacity var(--transition);
+}
+
+.project-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.project-card:hover::before { opacity: 1; }
+
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.card-title {
+  font-size: 1.02em;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.35;
+  flex: 1;
+}
+
+.card-status {
+  font-family: var(--font-mono);
+  font-size: 0.68em;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.card-status[data-status="active"] { background: rgba(200,164,78,0.12); color: var(--status-active); }
+.card-status[data-status="planning"] { background: rgba(104,120,168,0.12); color: var(--status-planning); }
+.card-status[data-status="paused"] { background: rgba(138,104,72,0.12); color: var(--status-paused); }
+.card-status[data-status="done"] { background: rgba(74,136,88,0.12); color: var(--status-done); }
+.card-status[data-status="dormant"] { background: rgba(100,90,80,0.1); color: var(--text-dim); }
+
+.card-next-action {
+  font-size: 0.86em;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.card-next-action span {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  color: var(--text-dim);
+}
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.68em;
+  color: var(--text-dim);
+}
+
+.card-category {
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: rgba(122,170,110,0.08);
+  color: var(--cat-color, var(--text-dim));
+}
+
+/* ========================================
+   EXPANDED PROJECT VIEW (MODAL)
+   ======================================== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 200;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s;
+}
+
+.modal-overlay.visible { display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto; }
+
+@media (max-width: 600px) {
+  .modal-overlay.visible { padding: 0; align-items: flex-end; }
+  .modal-content { border-radius: var(--radius) var(--radius) 0 0 !important; max-height: 92vh; margin-top: auto; }
+}
+
+.modal-content {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  width: 100%;
+  max-width: 640px;
+  max-height: 85vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+.modal-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  background: var(--bg-surface);
+  z-index: 1;
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 1.1em;
+  flex-shrink: 0;
+  transition: all var(--transition);
+}
+
+.modal-close:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+
+.modal-body { padding: 20px 24px 24px; }
+
+.field-group { margin-bottom: 18px; }
+
+.field-label {
+  font-family: var(--font-mono);
+  font-size: 0.72em;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.field-input, .field-textarea, .field-select {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.92em;
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.field-input:focus, .field-textarea:focus, .field-select:focus { border-color: var(--border-focus); }
+
+.field-textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.55;
+}
+
+.field-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238a8698' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 480px) { .field-row { grid-template-columns: 1fr; } }
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+}
+
+.btn-primary {
+  flex: 1;
+  padding: 12px;
+  background: var(--accent);
+  color: var(--bg-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 0.9em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btn-primary:hover { filter: brightness(1.1); }
+
+.btn-secondary {
+  padding: 12px 20px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btn-secondary:hover { background: var(--bg-card); color: var(--text-primary); }
+
+.btn-danger {
+  padding: 12px 16px;
+  background: transparent;
+  color: #a04040;
+  border: 1px solid rgba(160,64,64,0.3);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btn-danger:hover { background: rgba(160,64,64,0.1); }
+
+/* Update log within modal */
+.updates-log { margin-top: 12px; }
+
+.update-entry {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(37,42,56,0.5);
+  font-size: 0.85em;
+  line-height: 1.5;
+}
+
+.update-entry:last-child { border-bottom: none; }
+
+.update-time {
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+  color: var(--text-dim);
+}
+
+.update-text { color: var(--text-secondary); margin-top: 2px; }
+
+/* ========================================
+   FAB (floating add button)
+   ======================================== */
+.fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--bg-primary);
+  border: none;
+  font-size: 1.6em;
+  cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  transition: all var(--transition);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fab:hover { transform: scale(1.08); filter: brightness(1.1); }
+
+/* ========================================
+   EMPTY STATE
+   ======================================== */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-dim);
+}
+
+.empty-state .empty-icon { font-size: 2.5em; margin-bottom: 12px; opacity: 0.4; }
+.empty-state p { font-size: 0.92em; line-height: 1.55; }
+
+/* ========================================
+   TOAST
+   ======================================== */
+.toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85em;
+  opacity: 0;
+  transition: all 0.3s;
+  z-index: 300;
+  pointer-events: none;
+}
+
+.toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ========================================
+   RESPONSIVE MOBILE TWEAKS
+   ======================================== */
+@media (max-width: 600px) {
+  .header { padding: 12px 16px; }
+  .header-title { font-size: 1.15em; }
+  .content { padding: 14px 16px; }
+  .project-card { padding: 14px 16px; }
+  .card-title { font-size: 0.95em; }
+  .mode-switch { padding: 6px 10px; font-size: 0.68em; }
+  .fab { bottom: 20px; right: 20px; width: 48px; height: 48px; font-size: 1.4em; }
+}
+
+/* Hidden utility */
+.hidden { display: none !important; }
+
+/* Saving indicator */
+.saving-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 1s infinite;
+  display: none;
+}
+
+.saving-dot.active { display: block; }
+
+@keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+</style>
+</head>
+<body data-mode="ventures">
+
+<!-- ========== SETUP SCREEN ========== -->
+<div id="setup-screen" class="setup-screen hidden">
+  <div class="setup-box">
+    <h1>Setup</h1>
+    <p class="subtitle">Connect to your Supabase project for cross-device sync. You only need to do this once per device — credentials are saved locally.</p>
+
+    <label>Supabase Project URL</label>
+    <p class="hint">Found in Settings → API in your Supabase dashboard. Looks like: https://abcdefgh.supabase.co</p>
+    <textarea id="setup-url" rows="1" placeholder="https://your-project.supabase.co"></textarea>
+
+    <label>Supabase Anon Key</label>
+    <p class="hint">The public "anon" key from Settings → API. Safe to store client-side.</p>
+    <textarea id="setup-key" rows="2" placeholder="eyJhbGciOiJIUzI1NiIs..."></textarea>
+
+    <label style="margin-top:20px">SQL Setup (run once in Supabase SQL editor)</label>
+    <p class="hint">Copy this into your Supabase SQL editor and run it to create the projects table with row-level security.</p>
+    <textarea id="setup-sql" rows="12" readonly style="font-size:0.75em;line-height:1.5;color:var(--text-dim);cursor:text;">-- Run this in Supabase SQL Editor (once)
+CREATE TABLE IF NOT EXISTS projects (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  domain TEXT NOT NULL DEFAULT 'ventures' CHECK (domain IN ('ventures', 'life')),
+  title TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'planning' CHECK (status IN ('active', 'planning', 'paused', 'dormant', 'done')),
+  category TEXT DEFAULT 'general',
+  next_action TEXT DEFAULT '',
+  notes TEXT DEFAULT '',
+  motivation TEXT DEFAULT '',
+  sort_order INT DEFAULT 0,
+  updates JSONB DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users manage own projects"
+  ON projects FOR ALL
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE INDEX idx_projects_user_domain ON projects(user_id, domain);</textarea>
+
+    <div style="margin-top:20px;">
+      <button class="auth-btn" onclick="saveSetup()">Save &amp; Continue</button>
+    </div>
+    <p class="auth-msg" id="setup-msg"></p>
+  </div>
+</div>
+
+<!-- ========== AUTH SCREEN ========== -->
+<div id="auth-screen" class="auth-screen hidden">
+  <div class="auth-box">
+    <h1 style="font-family:var(--font-display);">Projects</h1>
+    <p>Sign in with your email — we'll send a magic link, no password needed.</p>
+    <input class="auth-input" type="email" id="auth-email" placeholder="your@email.com" autocomplete="email">
+    <button class="auth-btn" id="auth-btn" onclick="sendMagicLink()">Send Magic Link</button>
+    <p class="auth-msg" id="auth-msg"></p>
+  </div>
+</div>
+
+<!-- ========== MAIN APP ========== -->
+<div id="app" class="app">
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-left">
+        <span class="mode-badge" id="mode-badge">VENTURES</span>
+        <h1 class="header-title" id="header-title">Ventures</h1>
+        <div class="saving-dot" id="saving-dot"></div>
+      </div>
+      <div class="header-right">
+        <a class="mode-switch" id="mode-switch" href="#life">→ Life</a>
+        <button class="btn-icon" onclick="signOut()" title="Sign out">⏻</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="content">
+    <!-- Category filters (life mode only) -->
+    <div class="category-filters hidden" id="cat-filters">
+      <button class="cat-pill active" data-cat="all" onclick="filterCategory('all')">All</button>
+      <button class="cat-pill" data-cat="life" onclick="filterCategory('life')">Life</button>
+      <button class="cat-pill" data-cat="health" onclick="filterCategory('health')">Health</button>
+      <button class="cat-pill" data-cat="creative" onclick="filterCategory('creative')">Creative</button>
+      <button class="cat-pill" data-cat="fashion" onclick="filterCategory('fashion')">Fashion</button>
+      <button class="cat-pill" data-cat="spiritual" onclick="filterCategory('spiritual')">Spiritual</button>
+    </div>
+
+    <!-- Status filters -->
+    <div class="status-filters" id="status-filters">
+      <button class="status-pill active" data-status="all" onclick="filterStatus('all')">All</button>
+      <button class="status-pill" data-status="active" onclick="filterStatus('active')">Active</button>
+      <button class="status-pill" data-status="planning" onclick="filterStatus('planning')">Planning</button>
+      <button class="status-pill" data-status="paused" onclick="filterStatus('paused')">Paused</button>
+      <button class="status-pill" data-status="dormant" onclick="filterStatus('dormant')">Dormant</button>
+    </div>
+
+    <div class="projects-grid" id="projects-grid"></div>
+    <div class="empty-state hidden" id="empty-state">
+      <div class="empty-icon">◇</div>
+      <p>No projects here yet.<br>Tap + to add your first one.</p>
+    </div>
+  </div>
+
+  <button class="fab" onclick="openNewProject()" title="New project">+</button>
+</div>
+
+<!-- ========== MODAL ========== -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div style="flex:1">
+        <input class="field-input" id="modal-title" placeholder="Project title" style="font-size:1.15em;font-weight:600;background:transparent;border:none;padding:0;border-bottom:1px solid var(--border);border-radius:0;">
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field-group">
+          <div class="field-label">Status</div>
+          <select class="field-select" id="modal-status">
+            <option value="active">Active</option>
+            <option value="planning">Planning</option>
+            <option value="paused">Paused</option>
+            <option value="dormant">Dormant</option>
+            <option value="done">Done</option>
+          </select>
+        </div>
+        <div class="field-group" id="modal-cat-group">
+          <div class="field-label">Category</div>
+          <select class="field-select" id="modal-category">
+            <option value="general">General</option>
+            <option value="life">Life</option>
+            <option value="health">Health</option>
+            <option value="creative">Creative</option>
+            <option value="fashion">Fashion</option>
+            <option value="spiritual">Spiritual</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">Next Action</div>
+        <input class="field-input" id="modal-next-action" placeholder="What's the very next concrete step?">
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">Why / Motivation</div>
+        <textarea class="field-textarea" id="modal-motivation" placeholder="Why does this project matter? What's the goal?" rows="2"></textarea>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">Notes</div>
+        <textarea class="field-textarea" id="modal-notes" placeholder="Working notes, ideas, links..." rows="4"></textarea>
+      </div>
+
+      <!-- Quick update -->
+      <div class="field-group">
+        <div class="field-label">Quick Update</div>
+        <div style="display:flex;gap:8px;">
+          <input class="field-input" id="modal-update-input" placeholder="Log a quick update..." style="flex:1;">
+          <button class="btn-secondary" onclick="addUpdate()" style="white-space:nowrap;">+ Log</button>
+        </div>
+      </div>
+
+      <!-- Updates log -->
+      <div class="updates-log" id="modal-updates"></div>
+
+      <div class="modal-actions">
+        <button class="btn-primary" onclick="saveProject()">Save</button>
+        <button class="btn-danger" id="modal-delete-btn" onclick="deleteProject()">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== TOAST ========== -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ========================================
+// STATE
+// ========================================
+let sb = null;  // Supabase client (avoid naming conflict with library global)
+let currentUser = null;
+let currentMode = 'ventures';
+let projects = [];
+let currentProjectId = null;
+let currentCatFilter = 'all';
+let currentStatusFilter = 'all';
+let tempUpdates = [];
+
+// ========================================
+// INIT
+// ========================================
+async function init() {
+  // Determine mode from hash
+  const hash = window.location.hash.replace('#', '');
+  if (hash === 'life' || hash === 'ventures') {
+    currentMode = hash;
+  }
+  applyMode();
+
+  // Check for saved Supabase credentials
+  const url = localStorage.getItem('sb_url');
+  const key = localStorage.getItem('sb_key');
+
+  if (!url || !key) {
+    showScreen('setup');
+    return;
+  }
+
+  // Init Supabase
+  try {
+    sb = window.supabase.createClient(url, key);
+  } catch (e) {
+    showScreen('setup');
+    return;
+  }
+
+  // Check auth
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    currentUser = session.user;
+    showScreen('app');
+    loadProjects();
+  } else {
+    // Check for magic link callback
+    const { data: { session: newSession }, error } = await sb.auth.getSession();
+    if (newSession) {
+      currentUser = newSession.user;
+      showScreen('app');
+      loadProjects();
+    } else {
+      showScreen('auth');
+    }
+  }
+
+  // Listen for auth changes (magic link callback)
+  sb.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      currentUser = session.user;
+      showScreen('app');
+      loadProjects();
+    }
+    if (event === 'SIGNED_OUT') {
+      currentUser = null;
+      showScreen('auth');
+    }
+  });
+}
+
+function showScreen(name) {
+  document.getElementById('setup-screen').classList.toggle('hidden', name !== 'setup');
+  document.getElementById('auth-screen').classList.toggle('hidden', name !== 'auth');
+  document.getElementById('app').classList.toggle('hidden', name !== 'app');
+  if (name === 'app') document.getElementById('app').classList.add('visible');
+}
+
+// ========================================
+// SETUP
+// ========================================
+function saveSetup() {
+  const url = document.getElementById('setup-url').value.trim();
+  const key = document.getElementById('setup-key').value.trim();
+  const msg = document.getElementById('setup-msg');
+
+  if (!url || !key) {
+    msg.textContent = 'Both fields are required.';
+    msg.className = 'auth-msg error';
+    return;
+  }
+
+  localStorage.setItem('sb_url', url);
+  localStorage.setItem('sb_key', key);
+  msg.textContent = 'Saved! Connecting...';
+  msg.className = 'auth-msg success';
+
+  setTimeout(() => init(), 500);
+}
+
+// ========================================
+// AUTH
+// ========================================
+async function sendMagicLink() {
+  const email = document.getElementById('auth-email').value.trim();
+  const btn = document.getElementById('auth-btn');
+  const msg = document.getElementById('auth-msg');
+
+  if (!email) { msg.textContent = 'Enter your email.'; msg.className = 'auth-msg error'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+
+  const { error } = await sb.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: window.location.origin + window.location.pathname }
+  });
+
+  if (error) {
+    msg.textContent = error.message;
+    msg.className = 'auth-msg error';
+  } else {
+    msg.textContent = 'Check your email for the login link!';
+    msg.className = 'auth-msg success';
+  }
+  btn.disabled = false;
+  btn.textContent = 'Send Magic Link';
+}
+
+async function signOut() {
+  if (sb) await sb.auth.signOut();
+  currentUser = null;
+  showScreen('auth');
+}
+
+// ========================================
+// MODE SWITCHING
+// ========================================
+function applyMode() {
+  document.body.setAttribute('data-mode', currentMode);
+  const badge = document.getElementById('mode-badge');
+  const title = document.getElementById('header-title');
+  const switchBtn = document.getElementById('mode-switch');
+  const catFilters = document.getElementById('cat-filters');
+  const catGroup = document.getElementById('modal-cat-group');
+
+  if (currentMode === 'ventures') {
+    badge.textContent = 'VENTURES';
+    title.textContent = 'Ventures';
+    switchBtn.textContent = '→ Life';
+    switchBtn.href = '#life';
+    catFilters.classList.add('hidden');
+    if (catGroup) catGroup.classList.add('hidden');
+  } else {
+    badge.textContent = 'LIFE';
+    title.textContent = 'Life';
+    switchBtn.textContent = '→ Ventures';
+    switchBtn.href = '#ventures';
+    catFilters.classList.remove('hidden');
+    if (catGroup) catGroup.classList.remove('hidden');
+  }
+}
+
+window.addEventListener('hashchange', () => {
+  const hash = window.location.hash.replace('#', '');
+  if (hash === 'life' || hash === 'ventures') {
+    currentMode = hash;
+    applyMode();
+    currentCatFilter = 'all';
+    currentStatusFilter = 'all';
+    resetFilters();
+    renderProjects();
+  }
+});
+
+document.getElementById('mode-switch').addEventListener('click', (e) => {
+  e.preventDefault();
+  const target = currentMode === 'ventures' ? 'life' : 'ventures';
+  window.location.hash = target;
+});
+
+function resetFilters() {
+  document.querySelectorAll('.cat-pill').forEach(p => p.classList.toggle('active', p.dataset.cat === 'all'));
+  document.querySelectorAll('.status-pill').forEach(p => p.classList.toggle('active', p.dataset.status === 'all'));
+}
+
+// ========================================
+// DATA
+// ========================================
+async function loadProjects() {
+  if (!sb || !currentUser) return;
+
+  const { data, error } = await sb
+    .from('projects')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('sort_order', { ascending: true })
+    .order('updated_at', { ascending: false });
+
+  if (error) {
+    console.error('Load error:', error);
+    showToast('Error loading projects');
+    return;
+  }
+
+  projects = data || [];
+  renderProjects();
+}
+
+async function saveProjectToDb(project) {
+  showSaving(true);
+  const isNew = !project.id;
+
+  if (isNew) {
+    project.user_id = currentUser.id;
+    const { data, error } = await sb.from('projects').insert(project).select().single();
+    showSaving(false);
+    if (error) { showToast('Error saving'); console.error(error); return null; }
+    return data;
+  } else {
+    project.updated_at = new Date().toISOString();
+    const { data, error } = await sb.from('projects').update(project).eq('id', project.id).select().single();
+    showSaving(false);
+    if (error) { showToast('Error saving'); console.error(error); return null; }
+    return data;
+  }
+}
+
+async function deleteProjectFromDb(id) {
+  const { error } = await sb.from('projects').delete().eq('id', id);
+  if (error) { showToast('Error deleting'); console.error(error); return false; }
+  return true;
+}
+
+// ========================================
+// RENDERING
+// ========================================
+function renderProjects() {
+  const grid = document.getElementById('projects-grid');
+  const empty = document.getElementById('empty-state');
+
+  let filtered = projects.filter(p => p.domain === currentMode);
+
+  if (currentStatusFilter !== 'all') {
+    filtered = filtered.filter(p => p.status === currentStatusFilter);
+  }
+
+  if (currentMode === 'life' && currentCatFilter !== 'all') {
+    filtered = filtered.filter(p => p.category === currentCatFilter);
+  }
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+
+  empty.classList.add('hidden');
+
+  // Sort: active first, then planning, paused, dormant, done
+  const statusOrder = { active: 0, planning: 1, paused: 2, dormant: 3, done: 4 };
+  filtered.sort((a, b) => (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99));
+
+  grid.innerHTML = filtered.map(p => {
+    const catClass = currentMode === 'life' ? `cat-${p.category || 'general'}` : '';
+    const catBadge = currentMode === 'life' && p.category && p.category !== 'general'
+      ? `<span class="card-category ${catClass}" style="color:var(--cat-color)">${p.category}</span>` : '';
+    const lastUpdated = p.updated_at ? timeAgo(p.updated_at) : '';
+
+    return `
+      <div class="project-card ${catClass}" onclick="openProject('${p.id}')" style="--card-accent: var(--status-${p.status})">
+        <div class="card-top">
+          <div class="card-title">${esc(p.title)}</div>
+          <span class="card-status" data-status="${p.status}">${p.status.toUpperCase()}</span>
+        </div>
+        ${p.next_action ? `<div class="card-next-action"><span>Next →</span> ${esc(p.next_action)}</div>` : ''}
+        <div class="card-meta">
+          ${catBadge}
+          <span>${lastUpdated}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ========================================
+// FILTERS
+// ========================================
+function filterCategory(cat) {
+  currentCatFilter = cat;
+  document.querySelectorAll('.cat-pill').forEach(p => p.classList.toggle('active', p.dataset.cat === cat));
+  renderProjects();
+}
+
+function filterStatus(status) {
+  currentStatusFilter = status;
+  document.querySelectorAll('.status-pill').forEach(p => p.classList.toggle('active', p.dataset.status === status));
+  renderProjects();
+}
+
+// ========================================
+// MODAL
+// ========================================
+function openProject(id) {
+  const project = projects.find(p => p.id === id);
+  if (!project) return;
+
+  currentProjectId = id;
+  tempUpdates = Array.isArray(project.updates) ? [...project.updates] : [];
+
+  document.getElementById('modal-title').value = project.title || '';
+  document.getElementById('modal-status').value = project.status || 'planning';
+  document.getElementById('modal-category').value = project.category || 'general';
+  document.getElementById('modal-next-action').value = project.next_action || '';
+  document.getElementById('modal-motivation').value = project.motivation || '';
+  document.getElementById('modal-notes').value = project.notes || '';
+  document.getElementById('modal-delete-btn').classList.remove('hidden');
+  document.getElementById('modal-update-input').value = '';
+
+  // Show/hide category based on mode
+  const catGroup = document.getElementById('modal-cat-group');
+  if (currentMode === 'ventures') catGroup.classList.add('hidden');
+  else catGroup.classList.remove('hidden');
+
+  renderUpdatesLog();
+  document.getElementById('modal-overlay').classList.add('visible');
+  document.body.style.overflow = 'hidden';
+}
+
+function openNewProject() {
+  currentProjectId = null;
+  tempUpdates = [];
+
+  document.getElementById('modal-title').value = '';
+  document.getElementById('modal-status').value = 'planning';
+  document.getElementById('modal-category').value = 'general';
+  document.getElementById('modal-next-action').value = '';
+  document.getElementById('modal-motivation').value = '';
+  document.getElementById('modal-notes').value = '';
+  document.getElementById('modal-delete-btn').classList.add('hidden');
+  document.getElementById('modal-update-input').value = '';
+
+  const catGroup = document.getElementById('modal-cat-group');
+  if (currentMode === 'ventures') catGroup.classList.add('hidden');
+  else catGroup.classList.remove('hidden');
+
+  renderUpdatesLog();
+  document.getElementById('modal-overlay').classList.add('visible');
+  document.body.style.overflow = 'hidden';
+
+  setTimeout(() => document.getElementById('modal-title').focus(), 100);
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('visible');
+  document.body.style.overflow = '';
+  currentProjectId = null;
+  tempUpdates = [];
+}
+
+function closeModalOutside(e) {
+  if (e.target === e.currentTarget) closeModal();
+}
+
+function addUpdate() {
+  const input = document.getElementById('modal-update-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  tempUpdates.unshift({
+    text: text,
+    time: new Date().toISOString()
+  });
+
+  input.value = '';
+  renderUpdatesLog();
+}
+
+function renderUpdatesLog() {
+  const container = document.getElementById('modal-updates');
+  if (tempUpdates.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = tempUpdates.slice(0, 10).map(u => `
+    <div class="update-entry">
+      <div class="update-time">${formatDate(u.time)}</div>
+      <div class="update-text">${esc(u.text)}</div>
+    </div>
+  `).join('');
+}
+
+async function saveProject() {
+  const title = document.getElementById('modal-title').value.trim();
+  if (!title) { showToast('Title is required'); return; }
+
+  const projectData = {
+    title,
+    domain: currentMode,
+    status: document.getElementById('modal-status').value,
+    category: currentMode === 'life' ? document.getElementById('modal-category').value : 'general',
+    next_action: document.getElementById('modal-next-action').value.trim(),
+    motivation: document.getElementById('modal-motivation').value.trim(),
+    notes: document.getElementById('modal-notes').value.trim(),
+    updates: tempUpdates
+  };
+
+  if (currentProjectId) {
+    projectData.id = currentProjectId;
+  }
+
+  const saved = await saveProjectToDb(projectData);
+  if (saved) {
+    if (currentProjectId) {
+      const idx = projects.findIndex(p => p.id === currentProjectId);
+      if (idx >= 0) projects[idx] = saved;
+    } else {
+      projects.unshift(saved);
+    }
+    renderProjects();
+    closeModal();
+    showToast('Saved');
+  }
+}
+
+async function deleteProject() {
+  if (!currentProjectId) return;
+  if (!confirm('Delete this project?')) return;
+
+  const success = await deleteProjectFromDb(currentProjectId);
+  if (success) {
+    projects = projects.filter(p => p.id !== currentProjectId);
+    renderProjects();
+    closeModal();
+    showToast('Deleted');
+  }
+}
+
+// ========================================
+// UTILITIES
+// ========================================
+function esc(str) {
+  if (!str) return '';
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function timeAgo(dateStr) {
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diff = (now - d) / 1000;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+  if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
+  return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }) + ' ' +
+         d.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('visible');
+  setTimeout(() => t.classList.remove('visible'), 2000);
+}
+
+function showSaving(on) {
+  document.getElementById('saving-dot').classList.toggle('active', on);
+}
+
+// Keyboard shortcut: Escape to close modal
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeModal();
+  // Cmd/Ctrl+N for new project
+  if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+    e.preventDefault();
+    openNewProject();
+  }
+});
+
+// Enter in update input to add
+document.getElementById('modal-update-input')?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); addUpdate(); }
+});
+
+// ========================================
+// OFFLINE FALLBACK — localStorage demo mode
+// ========================================
+function initDemoMode() {
+  // If no Supabase, allow local-only usage
+  const demoProjects = JSON.parse(localStorage.getItem('demo_projects') || '[]');
+  projects = demoProjects;
+  renderProjects();
+}
+
+// ========================================
+// BOOT
+// ========================================
+init();
+</script>
+
+</body>
+</html>
