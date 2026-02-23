@@ -11,7 +11,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 /* ========================================
-   CSS CUSTOM PROPERTIES — MODE-AWARE
+   CSS CUSTOM PROPERTIES — MODE + THEME AWARE
    ======================================== */
 :root {
   /* Shared */
@@ -26,8 +26,15 @@
   --shadow-lg: 0 8px 32px rgba(0,0,0,0.2);
 }
 
-/* VENTURES MODE — deep, focused, ambitious */
-[data-mode="ventures"] {
+/* Light mode shadows — softer, warmer */
+[data-theme="light"] {
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+/* ── VENTURES DARK — deep, focused, ambitious ── */
+[data-mode="ventures"][data-theme="dark"] {
   --bg-primary: #08090c;
   --bg-surface: #0f1118;
   --bg-card: #151821;
@@ -41,17 +48,43 @@
   --accent: #c8a44e;
   --accent-soft: rgba(200,164,78,0.12);
   --accent-text: #dbb85a;
+  --accent-contrast: #08090c;
   --status-active: #c8a44e;
   --status-planning: #6878a8;
   --status-paused: #8a6848;
   --status-done: #4a8858;
   --header-gradient: linear-gradient(135deg, #0f1118 0%, #1a1520 100%);
-  --mode-label: "VENTURES";
+  --modal-backdrop: rgba(0,0,0,0.7);
   --grain-opacity: 0.03;
 }
 
-/* LIFE MODE — warm, organic, expansive */
-[data-mode="life"] {
+/* ── VENTURES LIGHT — warm parchment, gold ink ── */
+[data-mode="ventures"][data-theme="light"] {
+  --bg-primary: #f6f4ef;
+  --bg-surface: #faf9f5;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f0ede5;
+  --bg-input: #f0ede5;
+  --border: #e0dbd0;
+  --border-focus: #b08a38;
+  --text-primary: #1c1918;
+  --text-secondary: #706860;
+  --text-dim: #a09888;
+  --accent: #b08a38;
+  --accent-soft: rgba(176,138,56,0.1);
+  --accent-text: #8a6c28;
+  --accent-contrast: #1c1918;
+  --status-active: #9a7a2e;
+  --status-planning: #5060a0;
+  --status-paused: #8a6040;
+  --status-done: #2e7040;
+  --header-gradient: linear-gradient(135deg, #faf9f5 0%, #f2efe8 100%);
+  --modal-backdrop: rgba(0,0,0,0.3);
+  --grain-opacity: 0.018;
+}
+
+/* ── LIFE DARK — warm, organic, expansive ── */
+[data-mode="life"][data-theme="dark"] {
   --bg-primary: #0c0b08;
   --bg-surface: #14120e;
   --bg-card: #1c1914;
@@ -65,22 +98,56 @@
   --accent: #7aaa6e;
   --accent-soft: rgba(122,170,110,0.1);
   --accent-text: #8ebe80;
+  --accent-contrast: #0c0b08;
   --status-active: #7aaa6e;
   --status-planning: #8a9a6e;
   --status-paused: #aa8a5e;
   --status-done: #5a8a6a;
   --header-gradient: linear-gradient(135deg, #14120e 0%, #1a1810 100%);
-  --mode-label: "LIFE";
+  --modal-backdrop: rgba(0,0,0,0.7);
   --grain-opacity: 0.04;
 }
 
-/* Life mode categories */
-.cat-life { --cat-color: #7aaa6e; }
-.cat-creative { --cat-color: #aa7acc; }
-.cat-fashion { --cat-color: #cc7a8a; }
-.cat-spiritual { --cat-color: #7a9acc; }
-.cat-health { --cat-color: #6abba0; }
-.cat-general { --cat-color: #9a9080; }
+/* ── LIFE LIGHT — botanical paper, sage ink ── */
+[data-mode="life"][data-theme="light"] {
+  --bg-primary: #f4f2ec;
+  --bg-surface: #f9f7f2;
+  --bg-card: #ffffff;
+  --bg-card-hover: #ecf0e9;
+  --bg-input: #ecf0e9;
+  --border: #dbd6ca;
+  --border-focus: #4e7e42;
+  --text-primary: #1c1a16;
+  --text-secondary: #6e665a;
+  --text-dim: #a09888;
+  --accent: #5a8a4e;
+  --accent-soft: rgba(90,138,78,0.1);
+  --accent-text: #3e6e34;
+  --accent-contrast: #ffffff;
+  --status-active: #4a7a3e;
+  --status-planning: #607a3e;
+  --status-paused: #9a7a48;
+  --status-done: #3a7a52;
+  --header-gradient: linear-gradient(135deg, #f9f7f2 0%, #f0ede4 100%);
+  --modal-backdrop: rgba(0,0,0,0.25);
+  --grain-opacity: 0.015;
+}
+
+/* Life mode categories — dark */
+[data-theme="dark"] .cat-life { --cat-color: #7aaa6e; }
+[data-theme="dark"] .cat-creative { --cat-color: #aa7acc; }
+[data-theme="dark"] .cat-fashion { --cat-color: #cc7a8a; }
+[data-theme="dark"] .cat-spiritual { --cat-color: #7a9acc; }
+[data-theme="dark"] .cat-health { --cat-color: #6abba0; }
+[data-theme="dark"] .cat-general { --cat-color: #9a9080; }
+
+/* Life mode categories — light (deeper for contrast) */
+[data-theme="light"] .cat-life { --cat-color: #4a7a3e; }
+[data-theme="light"] .cat-creative { --cat-color: #7a4aac; }
+[data-theme="light"] .cat-fashion { --cat-color: #b0506a; }
+[data-theme="light"] .cat-spiritual { --cat-color: #4868b0; }
+[data-theme="light"] .cat-health { --cat-color: #2a8a6e; }
+[data-theme="light"] .cat-general { --cat-color: #706858; }
 
 /* ========================================
    RESET & BASE
@@ -160,7 +227,7 @@ body::after {
   width: 100%;
   padding: 14px;
   background: var(--accent);
-  color: var(--bg-primary);
+  color: var(--accent-contrast, var(--bg-primary));
   border: none;
   border-radius: var(--radius-sm);
   font-family: var(--font-body);
@@ -347,6 +414,22 @@ body::after {
   border-color: var(--accent);
 }
 
+/* Theme toggle */
+.theme-toggle {
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-toggle .theme-icon {
+  display: inline-block;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
+}
+
+/* Hide theme toggle on mobile */
+@media (max-width: 600px) {
+  .theme-toggle { display: none !important; }
+}
+
 /* ========================================
    PROJECT LIST
    ======================================== */
@@ -520,7 +603,7 @@ body::after {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.7);
+  background: var(--modal-backdrop, rgba(0,0,0,0.7));
   z-index: 200;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
@@ -643,7 +726,7 @@ body::after {
   flex: 1;
   padding: 12px;
   background: var(--accent);
-  color: var(--bg-primary);
+  color: var(--accent-contrast, var(--bg-primary));
   border: none;
   border-radius: var(--radius-sm);
   font-family: var(--font-body);
@@ -688,7 +771,7 @@ body::after {
 
 .update-entry {
   padding: 8px 0;
-  border-bottom: 1px solid rgba(37,42,56,0.5);
+  border-bottom: 1px solid var(--border);
   font-size: 0.85em;
   line-height: 1.5;
 }
@@ -714,7 +797,7 @@ body::after {
   height: 52px;
   border-radius: 50%;
   background: var(--accent);
-  color: var(--bg-primary);
+  color: var(--accent-contrast, var(--bg-primary));
   border: none;
   font-size: 1.6em;
   cursor: pointer;
@@ -793,7 +876,7 @@ body::after {
 @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
 </style>
 </head>
-<body data-mode="ventures">
+<body data-mode="ventures" data-theme="light">
 
 <!-- ========== SETUP SCREEN ========== -->
 <div id="setup-screen" class="setup-screen hidden">
@@ -866,6 +949,7 @@ CREATE INDEX idx_projects_user_domain ON projects(user_id, domain);</textarea>
       </div>
       <div class="header-right">
         <a class="mode-switch" id="mode-switch" href="#life">→ Life</a>
+        <button class="btn-icon theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode"><span class="theme-icon" id="theme-icon">☾</span></button>
         <button class="btn-icon" onclick="signOut()" title="Sign out">⏻</button>
       </div>
     </div>
@@ -980,6 +1064,7 @@ CREATE INDEX idx_projects_user_domain ON projects(user_id, domain);</textarea>
 let sb = null;  // Supabase client (avoid naming conflict with library global)
 let currentUser = null;
 let currentMode = 'ventures';
+let currentTheme = 'light';
 let projects = [];
 let currentProjectId = null;
 let currentCatFilter = 'all';
@@ -987,9 +1072,36 @@ let currentStatusFilter = 'all';
 let tempUpdates = [];
 
 // ========================================
+// THEME (light/dark)
+// ========================================
+function initTheme() {
+  const saved = localStorage.getItem('theme');
+  currentTheme = saved || 'light';
+  applyTheme();
+}
+
+function applyTheme() {
+  document.body.setAttribute('data-theme', currentTheme);
+  const icon = document.getElementById('theme-icon');
+  if (icon) {
+    // Show moon when light (click to go dark), sun when dark (click to go light)
+    icon.textContent = currentTheme === 'light' ? '☾' : '☀';
+  }
+}
+
+function toggleTheme() {
+  currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+  localStorage.setItem('theme', currentTheme);
+  applyTheme();
+}
+
+// ========================================
 // INIT
 // ========================================
 async function init() {
+  // Init theme from localStorage (light default)
+  initTheme();
+
   // Determine mode from hash
   const hash = window.location.hash.replace('#', '');
   if (hash === 'life' || hash === 'ventures') {
