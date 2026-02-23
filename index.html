@@ -846,6 +846,97 @@ body::after {
 .toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 /* ========================================
+   PROJECT PAGE (full-page view)
+   ======================================== */
+.project-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 20px 80px;
+}
+
+.pp-title {
+  width: 100%;
+  font-family: var(--font-display);
+  font-size: 1.6em;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid var(--border);
+  padding: 8px 0;
+  outline: none;
+  transition: border-color var(--transition);
+  letter-spacing: -0.3px;
+}
+
+.pp-title:focus { border-color: var(--border-focus); }
+
+.pp-controls {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  margin-bottom: 28px;
+}
+
+.pp-section { margin-bottom: 24px; }
+.pp-section .field-label { margin-bottom: 8px; }
+.pp-section .field-textarea { min-height: 100px; }
+.pp-section .pp-notes { min-height: 160px; }
+
+.pp-update-input {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.pp-update-input .field-input { flex: 1; }
+
+.pp-updates-timeline {
+  border-left: 2px solid var(--border);
+  padding-left: 16px;
+  margin-left: 4px;
+}
+
+.pp-update-item {
+  position: relative;
+  padding-bottom: 16px;
+}
+
+.pp-update-item::before {
+  content: '';
+  position: absolute;
+  left: -21px;
+  top: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg-primary);
+}
+
+.pp-update-time {
+  font-family: var(--font-mono);
+  font-size: 0.75em;
+  color: var(--text-dim);
+  margin-bottom: 2px;
+}
+
+.pp-update-text {
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.pp-footer {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+/* Back button in header */
+.back-btn { font-size: 1.2em; }
+
+/* ========================================
    RESPONSIVE MOBILE TWEAKS
    ======================================== */
 @media (max-width: 600px) {
@@ -856,6 +947,9 @@ body::after {
   .card-title { font-size: 0.95em; }
   .mode-switch { padding: 6px 10px; font-size: 0.68em; }
   .fab { bottom: 20px; right: 20px; width: 48px; height: 48px; font-size: 1.4em; }
+  .project-page { padding: 16px 16px 80px; }
+  .pp-title { font-size: 1.3em; }
+  .pp-controls { flex-direction: column; gap: 8px; }
 }
 
 /* Hidden utility */
@@ -943,6 +1037,7 @@ CREATE INDEX idx_projects_user_domain ON projects(user_id, domain);</textarea>
   <header class="header">
     <div class="header-inner">
       <div class="header-left">
+        <button class="btn-icon back-btn hidden" id="back-btn" onclick="goBackToList()">←</button>
         <span class="mode-badge" id="mode-badge">VENTURES</span>
         <h1 class="header-title" id="header-title">Ventures</h1>
         <div class="saving-dot" id="saving-dot"></div>
@@ -955,7 +1050,7 @@ CREATE INDEX idx_projects_user_domain ON projects(user_id, domain);</textarea>
     </div>
   </header>
 
-  <div class="content">
+  <div class="content" id="list-view">
     <!-- Category filters (life mode only) -->
     <div class="category-filters hidden" id="cat-filters">
       <button class="cat-pill active" data-cat="all" onclick="filterCategory('all')">All</button>
@@ -982,7 +1077,9 @@ CREATE INDEX idx_projects_user_domain ON projects(user_id, domain);</textarea>
     </div>
   </div>
 
-  <button class="fab" onclick="openNewProject()" title="New project">+</button>
+  <div class="project-page hidden" id="project-page"></div>
+
+  <button class="fab" id="fab-btn" onclick="openNewProject()" title="New project">+</button>
 </div>
 
 <!-- ========== MODAL ========== -->
@@ -1065,11 +1162,15 @@ let sb = null;  // Supabase client (avoid naming conflict with library global)
 let currentUser = null;
 let currentMode = 'ventures';
 let currentTheme = 'light';
+let currentView = 'list'; // 'list' or 'project'
 let projects = [];
 let currentProjectId = null;
 let currentCatFilter = 'all';
 let currentStatusFilter = 'all';
 let tempUpdates = [];
+let pageProjectId = null;
+let pageUpdates = [];
+let saveTimeout = null;
 
 // ========================================
 // THEME (light/dark)
@@ -1251,16 +1352,24 @@ function applyMode() {
   }
 }
 
-window.addEventListener('hashchange', () => {
+// ========================================
+// ROUTING
+// ========================================
+function handleRoute() {
   const hash = window.location.hash.replace('#', '');
-  if (hash === 'life' || hash === 'ventures') {
-    currentMode = hash;
-    applyMode();
-    currentCatFilter = 'all';
-    currentStatusFilter = 'all';
-    resetFilters();
-    renderProjects();
+  if (hash.startsWith('project/')) {
+    const id = hash.split('/')[1];
+    showProjectPage(id);
+  } else {
+    if (hash === 'life' || hash === 'ventures') {
+      currentMode = hash;
+    }
+    showListView();
   }
+}
+
+window.addEventListener('hashchange', () => {
+  handleRoute();
 });
 
 document.getElementById('mode-switch').addEventListener('click', (e) => {
@@ -1268,6 +1377,195 @@ document.getElementById('mode-switch').addEventListener('click', (e) => {
   const target = currentMode === 'ventures' ? 'life' : 'ventures';
   window.location.hash = target;
 });
+
+function showListView() {
+  currentView = 'list';
+  pageProjectId = null;
+  if (saveTimeout) { clearTimeout(saveTimeout); }
+
+  applyMode();
+  currentCatFilter = 'all';
+  currentStatusFilter = 'all';
+  resetFilters();
+  renderProjects();
+
+  // Show list, hide project page
+  document.getElementById('list-view').classList.remove('hidden');
+  document.getElementById('project-page').classList.add('hidden');
+  document.getElementById('fab-btn').classList.remove('hidden');
+
+  // Header: show list controls, hide back button
+  document.getElementById('back-btn').classList.add('hidden');
+  document.getElementById('mode-badge').classList.remove('hidden');
+  document.getElementById('mode-switch').classList.remove('hidden');
+}
+
+function showProjectPage(id) {
+  const project = projects.find(p => p.id === id);
+  if (!project) {
+    window.location.hash = currentMode;
+    return;
+  }
+
+  pageProjectId = id;
+  currentView = 'project';
+  currentMode = project.domain;
+  pageUpdates = Array.isArray(project.updates) ? [...project.updates] : [];
+
+  applyMode();
+
+  // Hide list, show project page
+  document.getElementById('list-view').classList.add('hidden');
+  document.getElementById('project-page').classList.remove('hidden');
+  document.getElementById('fab-btn').classList.add('hidden');
+
+  // Header: show back button, hide list controls
+  document.getElementById('back-btn').classList.remove('hidden');
+  document.getElementById('mode-badge').classList.add('hidden');
+  document.getElementById('mode-switch').classList.add('hidden');
+  document.getElementById('header-title').textContent = project.title;
+
+  window.scrollTo(0, 0);
+  renderProjectPage(project);
+}
+
+function renderProjectPage(project) {
+  const catHtml = currentMode === 'life' ? `
+    <select class="field-select" id="pp-category" onchange="debounceSave()">
+      <option value="general" ${project.category === 'general' ? 'selected' : ''}>General</option>
+      <option value="life" ${project.category === 'life' ? 'selected' : ''}>Life</option>
+      <option value="health" ${project.category === 'health' ? 'selected' : ''}>Health</option>
+      <option value="creative" ${project.category === 'creative' ? 'selected' : ''}>Creative</option>
+      <option value="fashion" ${project.category === 'fashion' ? 'selected' : ''}>Fashion</option>
+      <option value="spiritual" ${project.category === 'spiritual' ? 'selected' : ''}>Spiritual</option>
+    </select>` : '';
+
+  document.getElementById('project-page').innerHTML = `
+    <input class="pp-title" id="pp-title" value="${escAttr(project.title)}" placeholder="Project title"
+      oninput="debounceSave(); document.getElementById('header-title').textContent = this.value;">
+
+    <div class="pp-controls">
+      <select class="field-select" id="pp-status" onchange="debounceSave()">
+        <option value="active" ${project.status === 'active' ? 'selected' : ''}>Active</option>
+        <option value="planning" ${project.status === 'planning' ? 'selected' : ''}>Planning</option>
+        <option value="paused" ${project.status === 'paused' ? 'selected' : ''}>Paused</option>
+        <option value="dormant" ${project.status === 'dormant' ? 'selected' : ''}>Dormant</option>
+        <option value="done" ${project.status === 'done' ? 'selected' : ''}>Done</option>
+      </select>
+      ${catHtml}
+    </div>
+
+    <div class="pp-section">
+      <div class="field-label">Next Action</div>
+      <input class="field-input" id="pp-next-action" value="${escAttr(project.next_action || '')}"
+        placeholder="What's the very next concrete step?" oninput="debounceSave()">
+    </div>
+
+    <div class="pp-section">
+      <div class="field-label">Why / Motivation</div>
+      <textarea class="field-textarea" id="pp-motivation" placeholder="Why does this project matter?"
+        oninput="debounceSave()">${esc(project.motivation || '')}</textarea>
+    </div>
+
+    <div class="pp-section">
+      <div class="field-label">Notes</div>
+      <textarea class="field-textarea pp-notes" id="pp-notes" placeholder="Working notes, ideas, links..."
+        oninput="debounceSave()">${esc(project.notes || '')}</textarea>
+    </div>
+
+    <div class="pp-section">
+      <div class="field-label">Updates</div>
+      <div class="pp-update-input">
+        <input class="field-input" id="pp-update-input" placeholder="Log a quick update..."
+          onkeydown="if(event.key==='Enter'){event.preventDefault();addPageUpdate();}">
+        <button class="btn-secondary" onclick="addPageUpdate()" style="white-space:nowrap;">+ Log</button>
+      </div>
+      <div class="pp-updates-timeline" id="pp-updates-log"></div>
+    </div>
+
+    <div class="pp-footer">
+      <button class="btn-danger" onclick="deleteProjectFromPage()">Delete Project</button>
+    </div>
+  `;
+
+  renderPageUpdates();
+}
+
+function renderPageUpdates() {
+  const container = document.getElementById('pp-updates-log');
+  if (!container) return;
+  container.innerHTML = pageUpdates.map(u => `
+    <div class="pp-update-item">
+      <div class="pp-update-time">${formatDate(u.time)}</div>
+      <div class="pp-update-text">${esc(u.text)}</div>
+    </div>
+  `).join('');
+}
+
+function addPageUpdate() {
+  const input = document.getElementById('pp-update-input');
+  const text = input.value.trim();
+  if (!text) return;
+  pageUpdates.unshift({ text, time: new Date().toISOString() });
+  input.value = '';
+  renderPageUpdates();
+  debounceSave();
+}
+
+// ========================================
+// AUTO-SAVE (project page)
+// ========================================
+function debounceSave() {
+  if (saveTimeout) clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(() => saveCurrentProjectPage(), 1000);
+}
+
+async function saveCurrentProjectPage() {
+  if (!pageProjectId) return;
+  const title = document.getElementById('pp-title')?.value.trim();
+  if (!title) return;
+
+  const projectData = {
+    id: pageProjectId,
+    title,
+    status: document.getElementById('pp-status').value,
+    category: document.getElementById('pp-category')?.value || 'general',
+    next_action: document.getElementById('pp-next-action').value.trim(),
+    motivation: document.getElementById('pp-motivation').value.trim(),
+    notes: document.getElementById('pp-notes').value.trim(),
+    updates: pageUpdates
+  };
+
+  const saved = await saveProjectToDb(projectData);
+  if (saved) {
+    const idx = projects.findIndex(p => p.id === pageProjectId);
+    if (idx >= 0) projects[idx] = saved;
+  }
+}
+
+function goBackToList() {
+  if (saveTimeout) {
+    clearTimeout(saveTimeout);
+    saveCurrentProjectPage();
+  }
+  const project = projects.find(p => p.id === pageProjectId);
+  const mode = project ? project.domain : currentMode;
+  window.location.hash = mode;
+}
+
+async function deleteProjectFromPage() {
+  if (!pageProjectId) return;
+  if (!confirm('Delete this project?')) return;
+  const project = projects.find(p => p.id === pageProjectId);
+  const mode = project ? project.domain : currentMode;
+  const success = await deleteProjectFromDb(pageProjectId);
+  if (success) {
+    projects = projects.filter(p => p.id !== pageProjectId);
+    pageProjectId = null;
+    showToast('Deleted');
+    window.location.hash = mode;
+  }
+}
 
 function resetFilters() {
   document.querySelectorAll('.cat-pill').forEach(p => p.classList.toggle('active', p.dataset.cat === 'all'));
@@ -1294,7 +1592,7 @@ async function loadProjects() {
   }
 
   projects = data || [];
-  renderProjects();
+  handleRoute();
 }
 
 async function saveProjectToDb(project) {
@@ -1358,7 +1656,7 @@ function renderProjects() {
     const lastUpdated = p.updated_at ? timeAgo(p.updated_at) : '';
 
     return `
-      <div class="project-card ${catClass}" onclick="openProject('${p.id}')" style="--card-accent: var(--status-${p.status})">
+      <div class="project-card ${catClass}" onclick="window.location.hash='project/${p.id}'" style="--card-accent: var(--status-${p.status})">
         <div class="card-top">
           <div class="card-title">${esc(p.title)}</div>
           <span class="card-status" data-status="${p.status}">${p.status.toUpperCase()}</span>
@@ -1502,15 +1800,11 @@ async function saveProject() {
 
   const saved = await saveProjectToDb(projectData);
   if (saved) {
-    if (currentProjectId) {
-      const idx = projects.findIndex(p => p.id === currentProjectId);
-      if (idx >= 0) projects[idx] = saved;
-    } else {
-      projects.unshift(saved);
-    }
-    renderProjects();
+    projects.unshift(saved);
     closeModal();
-    showToast('Saved');
+    showToast('Created');
+    // Navigate to the new project's full page
+    window.location.hash = 'project/' + saved.id;
   }
 }
 
@@ -1535,6 +1829,11 @@ function esc(str) {
   const d = document.createElement('div');
   d.textContent = str;
   return d.innerHTML;
+}
+
+function escAttr(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function timeAgo(dateStr) {
@@ -1565,9 +1864,15 @@ function showSaving(on) {
   document.getElementById('saving-dot').classList.toggle('active', on);
 }
 
-// Keyboard shortcut: Escape to close modal
+// Keyboard shortcuts
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') closeModal();
+  if (e.key === 'Escape') {
+    if (document.getElementById('modal-overlay').classList.contains('visible')) {
+      closeModal();
+    } else if (currentView === 'project') {
+      goBackToList();
+    }
+  }
   // Cmd/Ctrl+N for new project
   if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
     e.preventDefault();
