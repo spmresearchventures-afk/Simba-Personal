@@ -1105,6 +1105,7 @@ async function sendMagicLink() {
 }
 
 async function signOut() {
+  if (!confirm('Sign out? You\'ll need a new magic link to get back in.')) return;
   if (sb) await sb.auth.signOut();
   currentUser = null;
   showScreen('auth');
