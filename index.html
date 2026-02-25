@@ -849,7 +849,7 @@ body::after {
    PROJECT PAGE (full-page view)
    ======================================== */
 .project-page {
-  max-width: 840px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 24px 20px 80px;
 }
@@ -883,7 +883,7 @@ body::after {
 .pp-section .field-input { padding: 16px 14px; font-size: 1em; }
 .pp-section .field-textarea { min-height: 150px; }
 .pp-section .pp-notes { min-height: 320px; }
-.pp-section .pp-next-actions { min-height: 80px; }
+.pp-section .pp-next-actions { min-height: 75px; }
 
 .pp-update-input {
   display: flex;
@@ -1887,7 +1887,7 @@ function escAttr(str) {
 
 function applyStatusColor(selectEl) {
   const status = selectEl.value;
-  const styles = getComputedStyle(document.documentElement);
+  const styles = getComputedStyle(document.body);
   let color, bg;
   if (status === 'dormant') {
     color = styles.getPropertyValue('--text-dim').trim();
