@@ -849,7 +849,7 @@ body::after {
    PROJECT PAGE (full-page view)
    ======================================== */
 .project-page {
-  max-width: 720px;
+  max-width: 840px;
   margin: 0 auto;
   padding: 24px 20px 80px;
 }
@@ -881,8 +881,9 @@ body::after {
 .pp-section { margin-bottom: 24px; }
 .pp-section .field-label { margin-bottom: 8px; }
 .pp-section .field-input { padding: 16px 14px; font-size: 1em; }
-.pp-section .field-textarea { min-height: 200px; }
+.pp-section .field-textarea { min-height: 150px; }
 .pp-section .pp-notes { min-height: 320px; }
+.pp-section .pp-next-actions { min-height: 80px; }
 
 .pp-update-input {
   display: flex;
@@ -1221,6 +1222,8 @@ function toggleTheme() {
   currentTheme = currentTheme === 'light' ? 'dark' : 'light';
   localStorage.setItem('theme', currentTheme);
   applyTheme();
+  const ppStatusEl = document.getElementById('pp-status');
+  if (ppStatusEl) applyStatusColor(ppStatusEl);
 }
 
 // ========================================
@@ -1472,7 +1475,7 @@ function renderProjectPage(project) {
       oninput="debounceSave(); document.getElementById('header-title').textContent = this.value;">
 
     <div class="pp-controls">
-      <select class="field-select" id="pp-status" onchange="debounceSave()">
+      <select class="field-select" id="pp-status" onchange="applyStatusColor(this); debounceSave()">
         <option value="active" ${project.status === 'active' ? 'selected' : ''}>Active</option>
         <option value="planning" ${project.status === 'planning' ? 'selected' : ''}>Planning</option>
         <option value="paused" ${project.status === 'paused' ? 'selected' : ''}>Paused</option>
@@ -1483,9 +1486,9 @@ function renderProjectPage(project) {
     </div>
 
     <div class="pp-section">
-      <div class="field-label">Next Action</div>
-      <input class="field-input" id="pp-next-action" value="${escAttr(project.next_action || '')}"
-        placeholder="What's the very next concrete step?" oninput="debounceSave()">
+      <div class="field-label">Next Actions</div>
+      <textarea class="field-textarea pp-next-actions" id="pp-next-action"
+        placeholder="What are the next concrete steps?" oninput="debounceSave()">${esc(project.next_action || '')}</textarea>
     </div>
 
     <div class="pp-section">
@@ -1517,6 +1520,8 @@ function renderProjectPage(project) {
   `;
 
   renderPageUpdates();
+  const ppStatusEl = document.getElementById('pp-status');
+  if (ppStatusEl) applyStatusColor(ppStatusEl);
 }
 
 function renderPageUpdates() {
@@ -1878,6 +1883,26 @@ function esc(str) {
 function escAttr(str) {
   if (!str) return '';
   return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function applyStatusColor(selectEl) {
+  const status = selectEl.value;
+  const styles = getComputedStyle(document.documentElement);
+  let color, bg;
+  if (status === 'dormant') {
+    color = styles.getPropertyValue('--text-dim').trim();
+    bg = 'rgba(100,90,80,0.1)';
+  } else {
+    color = styles.getPropertyValue('--status-' + status).trim();
+    const hex = color.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    bg = 'rgba(' + r + ',' + g + ',' + b + ',0.12)';
+  }
+  selectEl.style.color = color;
+  selectEl.style.backgroundColor = bg;
+  selectEl.style.fontWeight = '600';
 }
 
 function timeAgo(dateStr) {
